@@ -16,6 +16,25 @@ extern "C"
     /* CLASSIFICATION METRICS */
     double accuracy_score(Dataset* y_true, Dataset* y_pred);
 
+    /*
+    * STRUCT: CONFUSION_MATRIX
+    * ------------------------
+    * HOLDS TRUE POSITIVES, TRUE NEGATIVES, FALSE POSITIVES, FALSE NEGATIVES.
+    */
+    typedef struct 
+    {
+        int tp;
+        int tn;
+        int fp;
+        int fn;
+    } ConfusionMatrix;
+
+    /* EXTENDED CLASSIFICATION METRICS */
+    ConfusionMatrix compute_confusion_matrix(Dataset* y_true, Dataset* y_pred);
+    double precision_score(Dataset* y_true, Dataset* y_pred);
+    double recall_score(Dataset* y_true, Dataset* y_pred);
+    void print_confusion_matrix(ConfusionMatrix cm);
+
     #ifdef __cplusplus
 }
 #endif
