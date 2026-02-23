@@ -80,3 +80,73 @@ double accuracy_score(Dataset* y_true, Dataset* y_pred)
     }
     return (double)correct / n;
 }
+
+/*
+ * FUNCTION: COMPUTE_CONFUSION_MATRIX
+ * PURPOSE: TALLIES PREDICTIONS AGAINST GROUND TRUTH FOR BINARY CLASSIFICATION.
+ * ASSUMES POSITIVE CLASS IS 1.0 AND NEGATIVE CLASS IS 0.0.
+ */
+ConfusionMatrix compute_confusion_matrix(Dataset* y_true, Dataset* y_pred) 
+{
+    ConfusionMatrix cm = {0, 0, 0, 0};
+    int n = y_true->rows;
+
+    for (int i = 0; i < n; ++i) 
+    {
+        int actual = (int)y_true->data[i][0];
+        int predicted = (int)y_pred->data[i][0];
+
+        if (actual == 1 && predicted == 1) 
+            ++cm.tp;
+        else if (actual == 0 && predicted == 0) 
+            ++cm.tn;
+        else if (actual == 0 && predicted == 1) 
+            ++cm.fp;
+        else if (actual == 1 && predicted == 0) 
+            ++cm.fn;
+    }
+
+    return cm;
+}
+
+/*
+ * FUNCTION: PRECISION_SCORE
+ * MATH: TP / (TP + FP)
+ * PURPOSE: OF ALL POSITIVE PREDICTIONS, HOW MANY WERE ACTUALLY POSITIVE?
+ */
+double precision_score(Dataset* y_true, Dataset* y_pred) 
+{
+    ConfusionMatrix cm = compute_confusion_matrix(y_true, y_pred);
+    
+    if (cm.tp + cm.fp == 0) 
+        return 0.0; /* AVOID DIVISION BY ZERO */
+    
+    return (double)cm.tp / (cm.tp + cm.fp);
+}
+
+/*
+ * FUNCTION: RECALL_SCORE
+ * MATH: TP / (TP + FN)
+ * PURPOSE: OF ALL ACTUAL POSITIVES, HOW MANY DID WE FIND?
+ */
+double recall_score(Dataset* y_true, Dataset* y_pred) 
+{
+    ConfusionMatrix cm = compute_confusion_matrix(y_true, y_pred);
+    if (cm.tp + cm.fn == 0) 
+        return 0.0; /* AVOID DIVISION BY ZERO */
+    
+    return (double)cm.tp / (cm.tp + cm.fn);
+}
+
+/*
+ * FUNCTION: PRINT_CONFUSION_MATRIX
+ * PURPOSE: VISUAL DEBUGGING OF CLASSIFICATION PERFORMANCE.
+ */
+void print_confusion_matrix(ConfusionMatrix cm) 
+{
+    printf("\n=== CONFUSION MATRIX ===\n");
+    printf("                 PREDICTED 0 | PREDICTED 1\n");
+    printf("ACTUAL 0 (NEG) | %11d | %11d\n", cm.tn, cm.fp);
+    printf("ACTUAL 1 (POS) | %11d | %11d\n", cm.fn, cm.tp);
+    printf("========================\n\n");
+}
