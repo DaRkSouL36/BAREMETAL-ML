@@ -10,7 +10,7 @@
  */
 void shuffle_indices(int* indices, int n) 
 {
-    srand(time(NULL)); // SEED RANDOM NUMBER GENERATOR
+    srand(42); // SEED RANDOM NUMBER GENERATOR
     
     for (int i = n - 1; i > 0; --i) 
     {
@@ -58,7 +58,7 @@ DataSplit split_dataset(Dataset* X, Dataset* y, double test_size)
     }
 
     int n = X->rows;
-    int test_count = (int)(n * test_size);
+    int test_count = (int)(n * test_size + 0.5);
     int train_count = n - test_count;
 
     /* CREATE INDEX ARRAY [0, 1, ..., N-1] */
