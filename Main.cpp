@@ -1,5 +1,7 @@
 #include <iostream>
 #include <iomanip>
+#include <fstream>
+#include <filesystem> /* ADDED FOR DIRECTORY CREATION */
 
 /* INCLUDE C UTILS */
 #include "UTILS/data_loader.h"
@@ -14,6 +16,23 @@
 #include "MODELS/NAIVE BAYES/naive_bayes.h"
 
 using namespace std;
+namespace fs = std::filesystem; /* ALIAS FOR EASE OF USE */
+
+/*
+ * FUNCTION: LOG_METRIC
+ * PURPOSE: APPENDS MODEL PERFORMANCE TO A SHARED CSV FILE IN THE 'RESULT' DIRECTORY.
+ */
+void log_metric(const string& model_name, const string& metric_name, double value) 
+{
+    /* WRITING TO THE NEW FILE INSIDE THE 'RESULT' DIRECTORY */
+    ofstream file("RESULT/C_CPP_IMPLEMENTATION_RESULTS.csv", ios::app);
+    
+    if (file.is_open()) 
+    {
+        file << "C/C++," << model_name << "," << metric_name << "," << value << "\n";
+        file.close();
+    }
+}
 
 /*
  * FUNCTION: RUN_REGRESSION_PIPELINE
@@ -74,6 +93,12 @@ void run_regression_pipeline()
     cout << "GRADIENT DESCENT MSE : " << mse_gd << "\n";
     cout << "NORMAL EQUATION MSE  : " << mse_ne << "\n";
 
+    /* ------------------------------------------------------------------ */
+    /* LOG REGRESSION METRICS TO CSV */
+    /* ------------------------------------------------------------------ */
+    log_metric("LINEAR REGRESSION (GRADIENT DESCENT)", "MSE", mse_gd);
+    log_metric("LINEAR REGRESSION (NORMAL EQUATION)", "MSE", mse_ne);
+
     /* MEMORY CLEANUP */
     free_standard_scaler(scaler);
     free_dataset(X); free_dataset(y);
@@ -125,8 +150,13 @@ void run_classification_pipeline()
     logistic_regression_fit(log_reg, X_train_std, split.y_train, 0.01, 1000);
     
     Dataset* log_preds = logistic_regression_predict(log_reg, X_test_std, 0.5);
-    cout << "LOGISTIC REGRESSION ACCURACY: " << accuracy_score(split.y_test, log_preds) << "\n";
+    double log_acc = accuracy_score(split.y_test, log_preds);
+    
+    cout << "LOGISTIC REGRESSION ACCURACY: " << log_acc << "\n";
     print_confusion_matrix(compute_confusion_matrix(split.y_test, log_preds));
+    
+    /* LOG METRIC */
+    log_metric("LOGISTIC REGRESSION", "ACCURACY", log_acc);
 
     /* ------------------------------------------------------------------ */
     /* MODEL 3: K-NEAREST NEIGHBORS (USES MIN-MAX) */
@@ -136,8 +166,13 @@ void run_classification_pipeline()
     knn_fit(knn, X_train_mm, split.y_train);
     
     Dataset* knn_preds = knn_predict(knn, X_test_mm);
-    cout << "KNN ACCURACY: " << accuracy_score(split.y_test, knn_preds) << "\n";
+    double knn_acc = accuracy_score(split.y_test, knn_preds);
+    
+    cout << "KNN ACCURACY: " << knn_acc << "\n";
     print_confusion_matrix(compute_confusion_matrix(split.y_test, knn_preds));
+    
+    /* LOG METRIC */
+    log_metric("K-NEAREST NEIGHBORS", "ACCURACY", knn_acc);
 
     /* ------------------------------------------------------------------ */
     /* MODEL 4: GAUSSIAN NAIVE BAYES (USES Z-SCORE) */
@@ -147,8 +182,13 @@ void run_classification_pipeline()
     gaussian_nb_fit(gnb, X_train_std, split.y_train);
     
     Dataset* gnb_preds = gaussian_nb_predict(gnb, X_test_std);
-    cout << "NAIVE BAYES ACCURACY: " << accuracy_score(split.y_test, gnb_preds) << "\n";
+    double gnb_acc = accuracy_score(split.y_test, gnb_preds);
+    
+    cout << "NAIVE BAYES ACCURACY: " << gnb_acc << "\n";
     print_confusion_matrix(compute_confusion_matrix(split.y_test, gnb_preds));
+    
+    /* LOG METRIC */
+    log_metric("GAUSSIAN NAIVE BAYES", "ACCURACY", gnb_acc);
 
     /* MEMORY CLEANUP */
     free_logistic_regression(log_reg);
@@ -171,9 +211,30 @@ int main()
 {
     cout << "INITIATING ML FROM SCRATCH EVALUATION SUITE\n";
     
+    /* ------------------------------------------------------------------ */
+    /* CREATE DIRECTORY IF IT DOES NOT EXIST                              */
+    /* ------------------------------------------------------------------ */
+    if (!fs::exists("RESULT")) 
+    {
+        fs::create_directory("RESULT");
+        cout << "[SYSTEM] CREATED DIRECTORY: RESULT/\n";
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* INITIALIZE CSV WITH HEADERS IF EMPTY                               */
+    /* ------------------------------------------------------------------ */
+    ofstream file("RESULT/C_CPP_IMPLEMENTATION_RESULTS.csv", ios::app);
+    
+    if (file.tellp() == 0) /* CHECK IF FILE IS EMPTY */
+    {
+        file << "LANGUAGE,MODEL,METRIC,VALUE\n";
+    }
+    file.close();
+
     run_regression_pipeline();
     run_classification_pipeline();
     
     cout << "\nALL PIPELINES EXECUTED SUCCESSFULLY.\n";
+    cout << "[SYSTEM] RESULTS LOGGED TO: RESULT/C_CPP_IMPLEMENTATION_RESULTS.csv\n";
     return 0;
 }
