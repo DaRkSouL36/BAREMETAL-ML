@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -7,14 +8,32 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import mean_squared_error, accuracy_score, confusion_matrix
 
-# CONSTANTS TO MATCH OUR C IMPLEMENTATION
+# =========================
+# CONSTANTS TO MATCH OUR C/C++ IMPLEMENTATION
+# =========================
 TEST_SIZE = 0.3
-RANDOM_SEED = 42   # HARDCODE THIS IN C data_split.c FOR EXACT MATCH
+RANDOM_SEED = 42   
 EPOCHS = 1000
 
+# =========================
+# FUNCTION: LOG_METRIC
+# PURPOSE: APPENDS MODEL PERFORMANCE TO A SHARED CSV FILE IN THE 'RESULT' DIRECTORY.
+# =========================
+def log_metric(model_name, metric_name, value):
+    # CREATE DIRECTORY IF IT DOES NOT EXIST
+    os.makedirs("RESULT", exist_ok=True)
+    
+    file_path = "RESULT/PYTHON_SKLEARN_RESULTS.csv"
+    file_exists = os.path.isfile(file_path)
+    
+    # APPEND METRICS TO CSV
+    with open(file_path, "a") as file:
+        if not file_exists:
+            file.write("LANGUAGE,MODEL,METRIC,VALUE\n")
+        file.write(f"PYTHON,{model_name},{metric_name},{value}\n")
 
 # =========================
-# REGRESSION (UNCHANGED)
+# REGRESSION PIPELINE
 # =========================
 def run_regression_validation():
     print("\n" + "="*50)
@@ -57,9 +76,15 @@ def run_regression_validation():
     print(f"GRADIENT DESCENT MSE : {mse_gd:.6f}")
     print(f"NORMAL EQUATION MSE  : {mse_exact:.6f}")
 
+    # ------------------------------------------------------------------
+    # LOG REGRESSION METRICS TO CSV
+    # ------------------------------------------------------------------
+    log_metric("LINEAR REGRESSION (GRADIENT DESCENT)", "MSE", mse_gd)
+    log_metric("LINEAR REGRESSION (NORMAL EQUATION)", "MSE", mse_exact)
+
 
 # =========================
-# CLASSIFICATION (UPDATED)
+# CLASSIFICATION PIPELINE
 # =========================
 def run_classification_validation():
     print("\n" + "="*50)
@@ -102,10 +127,13 @@ def run_classification_validation():
     )
     log_reg.fit(X_train_std, y_train)
     log_preds = log_reg.predict(X_test_std)
+    log_acc = accuracy_score(y_test, log_preds)
 
     print("\n--- LOGISTIC REGRESSION (Z-SCORE) ---")
-    print(f"ACCURACY: {accuracy_score(y_test, log_preds):.6f}")
+    print(f"ACCURACY: {log_acc:.6f}")
     print(f"CONFUSION MATRIX:\n{confusion_matrix(y_test, log_preds)}")
+    
+    log_metric("LOGISTIC REGRESSION", "ACCURACY", log_acc)
 
     # ---------------------------------
     # MODEL 2: KNN (MIN-MAX)
@@ -113,10 +141,13 @@ def run_classification_validation():
     knn = KNeighborsClassifier(n_neighbors=5, metric='euclidean')
     knn.fit(X_train_mm, y_train)
     knn_preds = knn.predict(X_test_mm)
+    knn_acc = accuracy_score(y_test, knn_preds)
 
     print("\n--- K-NEAREST NEIGHBORS K=5 (MIN-MAX) ---")
-    print(f"ACCURACY: {accuracy_score(y_test, knn_preds):.6f}")
+    print(f"ACCURACY: {knn_acc:.6f}")
     print(f"CONFUSION MATRIX:\n{confusion_matrix(y_test, knn_preds)}")
+    
+    log_metric("K-NEAREST NEIGHBORS", "ACCURACY", knn_acc)
 
     # ---------------------------------
     # MODEL 3: GAUSSIAN NB (Z-SCORE)
@@ -124,15 +155,26 @@ def run_classification_validation():
     gnb = GaussianNB()
     gnb.fit(X_train_std, y_train)
     gnb_preds = gnb.predict(X_test_std)
+    gnb_acc = accuracy_score(y_test, gnb_preds)
 
     print("\n--- GAUSSIAN NAIVE BAYES (Z-SCORE) ---")
-    print(f"ACCURACY: {accuracy_score(y_test, gnb_preds):.6f}")
+    print(f"ACCURACY: {gnb_acc:.6f}")
     print(f"CONFUSION MATRIX:\n{confusion_matrix(y_test, gnb_preds)}")
+    
+    log_metric("GAUSSIAN NAIVE BAYES", "ACCURACY", gnb_acc)
 
 
 # =========================
 # MAIN
 # =========================
 if __name__ == "__main__":
+    print("INITIATING SCIKIT-LEARN VALIDATION SUITE\n")
+    
+    # CREATE DIRECTORY UPFRONT JUST IN CASE
+    os.makedirs("RESULT", exist_ok=True)
+    
     run_regression_validation()
     run_classification_validation()
+    
+    print("\nALL VALIDATION PIPELINES EXECUTED SUCCESSFULLY.")
+    print("[SYSTEM] RESULTS LOGGED TO: RESULT/PYTHON_SKLEARN_RESULTS.csv")
