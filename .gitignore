@@ -1,0 +1,20 @@
+# BUILD ARTIFACTS AND EXECUTABLES
+*.exe
+*.o
+*.out
+*.obj
+
+# PYTHON CACHES AND BYTECODE
+__pycache__/
+*.pyc
+*.pyo
+
+# PYTHON VIRTUAL ENVIRONMENTS
+venv/
+.venv/
+env/
+ENV/
+
+# IDE AND EDITOR SETTINGS (OPTIONAL BUT RECOMMENDED)
+.vscode/
+.idea/
