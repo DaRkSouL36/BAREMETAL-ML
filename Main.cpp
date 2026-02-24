@@ -209,32 +209,31 @@ void run_classification_pipeline()
 
 int main() 
 {
-    cout << "INITIATING ML FROM SCRATCH EVALUATION SUITE\n";
-    
-    /* ------------------------------------------------------------------ */
-    /* CREATE DIRECTORY IF IT DOES NOT EXIST                              */
-    /* ------------------------------------------------------------------ */
+    /* 1. CREATE DIRECTORY IF IT DOES NOT EXIST */
     if (!fs::exists("RESULT")) 
-    {
         fs::create_directory("RESULT");
-        cout << "[SYSTEM] CREATED DIRECTORY: RESULT/\n";
-    }
-
-    /* ------------------------------------------------------------------ */
-    /* INITIALIZE CSV WITH HEADERS IF EMPTY                               */
-    /* ------------------------------------------------------------------ */
-    ofstream file("RESULT/C_CPP_IMPLEMENTATION_RESULTS.csv", ios::app);
     
-    if (file.tellp() == 0) /* CHECK IF FILE IS EMPTY */
-    {
-        file << "LANGUAGE,MODEL,METRIC,VALUE\n";
-    }
-    file.close();
 
+    /* 2. REDIRECT ALL STANDARD OUTPUT TO A TEXT FILE */
+    /* THIS CAPTURES BOTH std::cout AND printf */
+    if (freopen("RESULT/C_CPP_FULL_LOG.txt", "w", stdout) == NULL)
+    {
+        /* FALLBACK IF FILE CREATION FAILS */
+        cerr << "ERROR: COULD NOT OPEN LOG FILE FOR WRITING.\n";
+        return 1;
+    }
+
+    /* EVERYTHING BELOW THIS LINE GOES INTO THE TXT FILE, NOT THE CONSOLE */
+    cout << "INITIATING ML FROM SCRATCH EVALUATION SUITE\n";
+    cout << "[SYSTEM] CREATED DIRECTORY: RESULT/\n";
+    
     run_regression_pipeline();
     run_classification_pipeline();
     
     cout << "\nALL PIPELINES EXECUTED SUCCESSFULLY.\n";
-    cout << "[SYSTEM] RESULTS LOGGED TO: RESULT/C_CPP_IMPLEMENTATION_RESULTS.csv\n";
+    
+    /* OPTIONAL: RESTORE STDOUT IF NEEDED LATER IN THE PROGRAM, 
+       BUT FOR A SCRIPT LIKE THIS, LETTING IT EXIT IS FINE. */
+       
     return 0;
 }
