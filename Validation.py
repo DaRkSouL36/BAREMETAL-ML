@@ -1,4 +1,5 @@
 import os
+import sys 
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -168,13 +169,26 @@ def run_classification_validation():
 # MAIN
 # =========================
 if __name__ == "__main__":
-    print("INITIATING SCIKIT-LEARN VALIDATION SUITE\n")
     
-    # CREATE DIRECTORY UPFRONT JUST IN CASE
+    # 1. CREATE DIRECTORY UPFRONT JUST IN CASE
     os.makedirs("RESULT", exist_ok=True)
+    
+    # 2. REDIRECT ALL STANDARD OUTPUT TO A TEXT FILE (MIRRORS C++ FREOPEN)
+    # WARNING: TERMINAL WILL BE BLANK. OUTPUT GOES STRAIGHT TO FILE.
+    try:
+        sys.stdout = open("RESULT/PYTHON_FULL_LOG.txt", "w")
+    except Exception as e:
+        print(f"ERROR: COULD NOT OPEN LOG FILE FOR WRITING. {e}")
+        sys.exit(1)
+
+    print("INITIATING SCIKIT-LEARN VALIDATION SUITE\n")
+    print("[SYSTEM] CREATED DIRECTORY: RESULT/\n")
     
     run_regression_validation()
     run_classification_validation()
     
     print("\nALL VALIDATION PIPELINES EXECUTED SUCCESSFULLY.")
     print("[SYSTEM] RESULTS LOGGED TO: RESULT/PYTHON_SKLEARN_RESULTS.csv")
+    
+    # CLEANUP
+    sys.stdout.close()
